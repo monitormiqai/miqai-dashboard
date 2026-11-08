@@ -4,4 +4,3 @@ src/js/config.local.js
 !.env.example
 node_modules/
 dist/
-
