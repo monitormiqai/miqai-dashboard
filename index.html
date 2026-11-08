@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07192c">
+  <meta name="description" content="MIQAI — monitoramento operacional da qualidade do ar interno.">
+  <title>MIQAI | Visão geral</title>
+  <link rel="stylesheet" href="./src/css/dashboard.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="#visao-geral" aria-label="MIQAI, início">
+        <img src="./assets/miqai-brand-reference.png" alt="MIQAI — Monitor de Qualidade do Ar Interno">
+      </a>
+      <div class="tenant-switcher">
+        <span class="tenant-avatar" aria-hidden="true">M</span>
+        <span class="tenant-copy"><small>MIQAI</small><strong>Monitoramento</strong></span>
+      </div>
+      <nav class="primary-nav">
+        <span class="nav-caption">OPERAÇÃO</span>
+        <a class="nav-link active" href="#visao-geral"><span class="nav-icon">⌂</span>Visão geral</a>
+        <a class="nav-link" href="#ambientes"><span class="nav-icon">◇</span>Ambientes</a>
+        <a class="nav-link" href="#dispositivos"><span class="nav-icon">◉</span>Dispositivos</a>
+        <a class="nav-link" href="#historico"><span class="nav-icon">↗</span>Histórico</a>
+        <a class="nav-link" href="#alertas"><span class="nav-icon">♧</span>Alertas</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card"><span class="help-mark">✦</span><strong>Ar mais puro.<br>Vida melhor.</strong><small>Monitoramento MIQAI</small></div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="visao-geral">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>MIQAI</span><b>/</b><strong>Visão geral</strong></div>
+        <div class="topbar-actions"><button class="button-secondary auth-toggle" id="logout-button" type="button" hidden>Sair</button></div>
+      </header>
+
+      <div class="page-wrap">
+        <section class="auth-panel" aria-labelledby="auth-heading">
+          <div><p class="eyebrow">ACESSO SEGURO</p><h2 id="auth-heading">Entre para consultar seus dados</h2><p id="auth-instructions">Acesse os dados do ambiente vinculado à sua conta.</p></div>
+          <form id="login-form" class="login-form" method="post">
+            <label>E-mail<input id="login-email" name="email" type="email" autocomplete="username" required disabled></label>
+            <label>Senha<input id="login-password" name="password" type="password" autocomplete="current-password" required disabled></label>
+            <button class="button-primary" type="submit" disabled>Entrar</button>
+          </form>
+          <p id="auth-message" class="auth-message" role="status">Preparando acesso seguro…</p>
+        </section>
+
+        <div class="connection-notice" id="connection-notice" role="status"><span class="notice-icon">i</span><span><strong>Aguardando acesso.</strong> Os dados exibidos correspondem ao ambiente autorizado para sua conta.</span></div>
+
+        <section class="mobile-experience" aria-label="Experiência mobile do ambiente">
+          <header class="mobile-environment-header">
+            <div class="mobile-brand"><img src="./assets/miqai-brand-reference.png" alt="MIQAI — Monitor de Qualidade do Ar Interno"></div>
+            <button class="button-secondary mobile-logout" id="mobile-logout-button" type="button" hidden>Sair</button>
+            <div class="mobile-environment-context">
+              <div><small>AMBIENTE MONITORADO</small><h1 id="mobile-environment-name">Aguardando ambiente</h1><p><span id="mobile-device-label">Dispositivo —</span><span class="context-separator">•</span><span id="mobile-device-status">Estado não informado</span></p><p id="mobile-environment-domain" class="mobile-domain">Domain não informado</p></div>
+              <time id="mobile-reading-time">Aguardando leitura</time>
+            </div>
+          </header>
+          <div class="mobile-step-track" id="mobile-step-track">
+            <section class="mobile-step" id="mobile-step-agora" aria-labelledby="mobile-title-agora">
+              <div class="mobile-step-heading"><span class="mobile-step-number">1</span><div><h2 id="mobile-title-agora">AGORA</h2><p>Visão geral do ambiente</p></div></div>
+              <div id="mobile-current-content" class="mobile-step-content"><p class="mobile-empty">Aguardando dados do ambiente.</p></div>
+            </section>
+            <section class="mobile-step" id="mobile-step-cenario" aria-labelledby="mobile-title-cenario">
+              <div class="mobile-step-heading"><span class="mobile-step-number blue">2</span><div><h2 id="mobile-title-cenario">CENÁRIO</h2><p>O que está acontecendo</p></div></div>
+              <div id="mobile-scenario-content" class="mobile-step-content"><p class="mobile-empty">Aguardando resultado do CORE.</p></div>
+            </section>
+            <section class="mobile-step" id="mobile-step-impactos" aria-labelledby="mobile-title-impactos">
+              <div class="mobile-step-heading"><span class="mobile-step-number purple">3</span><div><h2 id="mobile-title-impactos">IMPACTOS</h2><p>Possíveis efeitos ambientais informados pelo CORE</p></div></div>
+              <div id="mobile-impacts-content" class="mobile-step-content"><p class="mobile-empty">Nenhum impacto fornecido para esta leitura.</p></div>
+            </section>
+            <section class="mobile-step" id="mobile-step-acao" aria-labelledby="mobile-title-acao">
+              <div class="mobile-step-heading"><span class="mobile-step-number green">4</span><div><h2 id="mobile-title-acao">AÇÃO</h2><p>O que fazer agora</p></div></div>
+              <div id="mobile-action-content" class="mobile-step-content"><p class="mobile-empty">Nenhuma ação fornecida para esta leitura.</p></div>
+            </section>
+            <section class="mobile-step" id="mobile-step-fundamento" aria-labelledby="mobile-title-fundamento">
+              <div class="mobile-step-heading"><span class="mobile-step-number orange">5</span><div><h2 id="mobile-title-fundamento">FUNDAMENTO</h2><p>Por que o MIQAI está dizendo isso</p></div></div>
+              <div id="mobile-foundation-content" class="mobile-step-content"><p class="mobile-empty">Aguardando evidências do CORE.</p></div>
+            </section>
+          </div>
+          <nav class="mobile-step-nav" aria-label="Etapas da análise do ambiente">
+            <button class="active" type="button" data-mobile-step="0" aria-label="Agora"><span>◉</span><small>Agora</small></button>
+            <button type="button" data-mobile-step="1" aria-label="Cenário"><span>◇</span><small>Cenário</small></button>
+            <button type="button" data-mobile-step="2" aria-label="Impactos"><span>✧</span><small>Impactos</small></button>
+            <button type="button" data-mobile-step="3" aria-label="Ação"><span>✓</span><small>Ação</small></button>
+            <button type="button" data-mobile-step="4" aria-label="Fundamento"><span>⌕</span><small>Fundamento</small></button>
+          </nav>
+        </section>
+
+        <section class="page-heading">
+          <div><p class="eyebrow">MONITORAMENTO OPERACIONAL</p><h1>Visão geral</h1><p class="heading-copy">Acompanhe ambientes e dispositivos da sua instalação.</p></div>
+          <div class="heading-tools"><span class="last-updated" id="last-updated"><i></i> Aguardando leituras</span></div>
+        </section>
+
+        <section class="metric-grid" aria-label="Resumo da operação">
+          <article class="metric-tile"><div class="tile-top"><span class="tile-label">Dispositivos cadastrados</span><span class="tile-icon teal">◉</span></div><div class="tile-value" id="device-count">—</div><div class="tile-foot">Conforme cadastro disponível</div></article>
+          <article class="metric-tile"><div class="tile-top"><span class="tile-label">Dispositivos ativos</span><span class="tile-icon green">⌁</span></div><div class="tile-value" id="active-device-count">—</div><div class="tile-foot">Status cadastral informado</div></article>
+          <article class="metric-tile"><div class="tile-top"><span class="tile-label">Ambientes cadastrados</span><span class="tile-icon blue">◇</span></div><div class="tile-value" id="environment-count">—</div><div class="tile-foot">Conforme cadastro disponível</div></article>
+          <article class="metric-tile"><div class="tile-top"><span class="tile-label">Leituras registradas</span><span class="tile-icon amber">↗</span></div><div class="tile-value" id="reading-count">—</div><div class="tile-foot">Leituras recebidas</div></article>
+        </section>
+
+        <section class="section-block" id="ambientes">
+          <div class="section-heading"><div><p class="eyebrow">ACOMPANHAMENTO</p><h2>Ambientes</h2></div></div>
+          <div class="environment-grid" id="environment-list"><div class="empty-card"><span class="empty-glyph">◇</span><div><h3>Aguardando dados do ambiente</h3><p>Ambientes e Domain serão exibidos conforme os dados disponíveis para sua conta.</p></div></div></div>
+        </section>
+
+        <section class="section-block device-section" id="dispositivos">
+          <div class="section-heading"><div><p class="eyebrow">ESTADO DA INSTALAÇÃO</p><h2>Dispositivos</h2></div></div>
+          <div class="table-card"><table><thead><tr><th>DISPOSITIVO</th><th>AMBIENTE</th><th>ESTADO CADASTRAL</th><th>ATIVADO EM</th><th>ÚLTIMA RECEBIDA</th></tr></thead><tbody id="device-rows"><tr><td colspan="5"><div class="table-empty"><span class="empty-glyph">◉</span><strong>Aguardando ambiente</strong><small>Estado cadastral e horário da última leitura disponível.</small></div></td></tr></tbody></table></div>
+        </section>
+
+        <section class="lower-grid">
+          <article class="panel history-panel" id="historico"><div class="section-heading compact"><div><p class="eyebrow">HISTÓRICO</p><h2>Leituras recentes</h2></div></div><div class="reading-list" id="reading-list"><div class="empty-state"><span class="empty-glyph">↗</span><strong>Aguardando leituras</strong><p>Valores e horários são apresentados conforme recebidos.</p></div></div></article>
+          <article class="panel alerts-panel" id="alertas"><div class="section-heading compact"><div><p class="eyebrow">RESULTADO DO CORE</p><h2>Diagnóstico recebido</h2></div></div><div id="core-result" class="empty-state"><span class="empty-glyph">✦</span><strong>Aguardando leitura</strong><p>Esta área apresenta o conteúdo fornecido pelo CORE.</p></div></article>
+        </section>
+        <footer class="page-footer"><span>MIQAI · Monitor de Qualidade do Ar Interno</span><span>O CORE produz a inteligência; o dashboard apresenta os resultados recebidos.</span></footer>
+      </div>
+    </main>
+  </div>
+  <nav class="mobile-nav" aria-label="Navegação móvel">
+    <a class="active" href="#visao-geral"><span>⌂</span><small>Visão geral</small></a>
+    <a href="#ambientes"><span>◇</span><small>Ambientes</small></a>
+    <a href="#dispositivos"><span>◉</span><small>Dispositivos</small></a>
+    <a href="#historico"><span>↗</span><small>Histórico</small></a>
+    <a href="#alertas"><span>♧</span><small>Alertas</small></a>
+  </nav>
+  <script src="./src/js/config.js"></script>
+  <script>
+    window.addEventListener("error", event => {
+      document.querySelector("#auth-message").textContent = "Erro ao iniciar: " + (event.message || "verifique a carga dos scripts");
+    });
+    const sdk = document.createElement("script");
+    sdk.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2?miqai=1";
+    sdk.onload = () => {
+      const app = document.createElement("script");
+      app.src = "./src/js/app.js?v=mobile-mvp-1";
+      app.onload = () => {
+        if (!window.MIQAI_APP_READY && document.querySelector("#auth-message").textContent === "Preparando acesso seguro…") {
+          document.querySelector("#auth-message").textContent = "Não foi possível preparar o acesso. Atualize a página.";
+        }
+      };
+      app.onerror = () => { document.querySelector("#auth-message").textContent = "Não foi possível carregar a tela de acesso. Atualize a página."; };
+      document.body.appendChild(app);
+    };
+    sdk.onerror = () => { document.querySelector("#auth-message").textContent = "Não foi possível preparar o acesso. Verifique a internet e atualize a página."; };
+    document.head.appendChild(sdk);
+  </script>
+</body>
+</html>
+
+
