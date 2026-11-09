@@ -61,14 +61,16 @@ function itemList(items, className = "mobile-info-card") {
     const title = item.title ?? item.name ?? item.label ?? item.code ?? "";
     const description = item.description ?? item.text ?? "";
     const badge = [item.severity, item.status].find(value => typeof value === "string") ?? "";
-    return `<article class="${className}">${title ? `<h3>${escapeHtml(title)}</h3>` : ""}${badge ? `<span class="mobile-data-badge">${escapeHtml(badge)}</span>` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}</article>`;
+    const references = Array.isArray(item.referenceIds) && item.referenceIds.length
+      ? `<small>Referências do CORE: ${escapeHtml(item.referenceIds.join(", "))}</small>` : "";
+    return `<article class="${className}">${title ? `<h3>${escapeHtml(title)}</h3>` : ""}${badge ? `<span class="mobile-data-badge">${escapeHtml(badge)}</span>` : ""}${description ? `<p>${escapeHtml(description)}</p>` : ""}${references}</article>`;
   }).filter(Boolean);
 }
 
 function getCoreSection(coreResult, v2Key, v1Key) {
   const foundation = coreResult?.foundation ?? {};
   const direct = coreResult?.[v1Key];
-  return foundation[v2Key] ?? direct?.items ?? direct ?? [];
+  return foundation[v2Key] ?? direct?.items ?? direct?.matches ?? direct ?? [];
 }
 
 function renderMobileExperience(environment, devices, latest) {
@@ -94,8 +96,11 @@ function renderMobileExperience(environment, devices, latest) {
     : '<p class="mobile-empty">Esta leitura não contém medições disponíveis.</p>';
 
   const core = latest?.core_result;
-  const scenario = core?.scenario?.primary ?? (core?.scenario?.available ? core.scenario : null);
-  const action = core?.actions?.primary ?? core?.action?.primary;
+  const scenario = core?.scenario?.primary ??
+    (core?.environmentalScenario?.available ? core.environmentalScenario.primary : null) ??
+    (core?.scenario?.available ? core.scenario : null);
+  const actions = core?.actions?.additional ?? core?.mitigation?.actions ?? [];
+  const action = core?.actions?.primary ?? core?.action?.primary ?? actions[0] ?? null;
   const scenarioTarget = document.querySelector("#mobile-scenario-content");
   const diagnoses = getCoreSection(core, "diagnoses", "diagnoses");
   const scenarioHtml = scenario
@@ -106,17 +111,24 @@ function renderMobileExperience(environment, devices, latest) {
     ? `${scenarioHtml}${diagnosisHtml}`
     : '<p class="mobile-empty">Esta leitura não contém cenário ou diagnóstico do CORE.</p>';
 
-  const impacts = core?.impacts?.items ?? core?.impacts?.primary ?? [];
+  const impacts = core?.impacts?.items ?? core?.impacts?.primary ?? core?.impacts ?? [];
   const impactItems = Array.isArray(impacts) ? impacts : impacts ? [impacts] : [];
   const impactHtml = itemList(impactItems).join("");
-  document.querySelector("#mobile-impacts-content").innerHTML = impactHtml || '<p class="mobile-empty">O CORE não forneceu impactos para esta leitura.</p>';
+  const impactResolution = core?.impactResolution;
+  const impactEmpty = impactResolution?.status === "NOT_ASSESSED"
+    ? "Impactos não avaliados nesta leitura."
+    : "Nenhum impacto identificado dentro das relações atualmente avaliadas pelo CORE.";
+  document.querySelector("#mobile-impacts-content").innerHTML = impactHtml || `<p class="mobile-empty">${escapeHtml(impactEmpty)}</p>`;
 
   const actionTarget = document.querySelector("#mobile-action-content");
   if (action) {
-    const additional = core?.actions?.additional ?? core?.action?.additional ?? [];
+    const additional = core?.actions?.additional ?? core?.action?.additional ?? actions.slice(1);
     actionTarget.innerHTML = `<article class="mobile-action-card"><span class="mobile-data-origin">AÇÃO INFORMADA PELO CORE</span><h3>${escapeHtml(action.title ?? action.name ?? "Ação")}</h3>${action.description ? `<p>${escapeHtml(action.description)}</p>` : ""}</article>${itemList(additional).join("")}`;
   } else {
-    actionTarget.innerHTML = '<p class="mobile-empty">O CORE não forneceu ação para esta leitura.</p>';
+    const actionEmpty = core?.mitigation?.status === "NOT_ASSESSED"
+      ? "Ações não avaliadas nesta leitura."
+      : "Nenhuma ação identificada entre as regras atualmente disponíveis no CORE.";
+    actionTarget.innerHTML = `<p class="mobile-empty">${escapeHtml(actionEmpty)}</p>`;
   }
 
   const evidence = getCoreSection(core, "evidence", "evidence");
@@ -129,7 +141,19 @@ function renderMobileExperience(environment, devices, latest) {
     ...itemList(hypotheses, "mobile-info-card hypothesis-card"),
     ...itemList(references, "mobile-reference-card")
   ].join("");
-  foundationTarget.innerHTML = foundationHtml || '<p class="mobile-empty">O CORE não forneceu evidências, hipóteses ou referências para esta leitura.</p>';
+  foundationTarget.innerHTML = foundationHtml || '<p class="mobile-empty">O CORE não retornou evidências ou hipóteses correspondentes nesta leitura.</p>';
+
+  const score = core?.qaiScore;
+  const scoreNote = score?.available
+    ? `QAI Score do CORE: ${escapeHtml(score.value ?? score.score ?? "indisponível")}`
+    : "QAI Score do CORE indisponível nesta versão. O score do display é independente.";
+  const coreMetrics = core?.metrics;
+  const co2Note = coreMetrics?.co2Available
+    ? `CO₂: ${escapeHtml(coreMetrics.co2Interpretation ?? "interpretação contextual não informada")} · histórico: ${escapeHtml(coreMetrics.co2HistoricalAssessment ?? "não informado")}` : "";
+  const historicalNotes = (core?.validation?.parameters ?? [])
+    .filter(parameter => parameter.historicalAssessmentStatus === "REQUIRED_NOT_EVALUATED")
+    .map(parameter => `<p class="mobile-empty">${escapeHtml(parameter.parameter)}: avaliação histórica necessária e não realizada.</p>`).join("");
+  currentTarget.insertAdjacentHTML("beforeend", `<p class="mobile-empty">${scoreNote}</p>${co2Note ? `<p class="mobile-empty">${co2Note}</p>` : ""}${historicalNotes}`);
 }
 
 function renderEnvironments(environments, devices) {
@@ -173,15 +197,22 @@ function renderReadings(readings) {
 
 function renderCoreResult(coreResult) {
   const target = document.querySelector("#core-result");
-  const scenario = coreResult?.scenario?.primary;
-  const action = coreResult?.actions?.primary;
-  const diagnoses = coreResult?.foundation?.diagnoses ?? [];
-  const evidence = coreResult?.foundation?.evidence ?? [];
-  if (!coreResult || (!scenario && !action && !diagnoses.length && !evidence.length)) {
+  const scenario = coreResult?.scenario?.primary ??
+    (coreResult?.environmentalScenario?.available ? coreResult.environmentalScenario.primary : null);
+  const actions = coreResult?.mitigation?.actions ?? coreResult?.actions?.additional ?? [];
+  const action = coreResult?.actions?.primary ?? coreResult?.action?.primary ?? actions[0];
+  const diagnoses = coreResult?.foundation?.diagnoses ?? coreResult?.diagnosis ?? [];
+  const evidence = coreResult?.foundation?.evidence ?? coreResult?.evidence ?? [];
+  const hypotheses = getCoreSection(coreResult, "hypotheses", "hypotheses");
+  const impacts = Array.isArray(coreResult?.impacts) ? coreResult.impacts : coreResult?.impacts?.items ?? [];
+  if (!coreResult || (!scenario && !action && !diagnoses.length && !evidence.length && !hypotheses.length && !impacts.length)) {
     target.innerHTML = '<span class="empty-glyph">✦</span><strong>Resultado CORE indisponível</strong><p>Não há conteúdo de CORE nesta leitura.</p>';
     return;
   }
-  target.innerHTML = `<span class="result-version">${escapeHtml(coreResult.schemaVersion ?? "Versão não informada")}</span>${scenario ? `<h3>${escapeHtml(scenario.title ?? scenario.name ?? "Cenário")}</h3><p>${escapeHtml(scenario.description ?? "")}</p>` : ""}${action ? `<div class="core-action"><strong>${escapeHtml(action.title ?? "Ação")}</strong><p>${escapeHtml(action.description ?? "")}</p></div>` : ""}${diagnoses.length ? `<div class="core-list"><strong>Diagnósticos recebidos</strong>${diagnoses.map(item => `<p>${escapeHtml(item.title ?? "")}${item.description ? ` — ${escapeHtml(item.description)}` : ""}</p>`).join("")}</div>` : ""}${evidence.length ? `<div class="core-list"><strong>Evidências recebidas</strong>${evidence.map(item => `<p>${escapeHtml(item.title ?? "")}${item.description ? ` — ${escapeHtml(item.description)}` : ""}</p>`).join("")}</div>` : ""}`;
+  const impactState = coreResult?.impactResolution?.status ?? "NOT_REPORTED";
+  const actionState = coreResult?.mitigation?.status ?? "NOT_REPORTED";
+  const scoreState = coreResult?.qaiScore?.available ? "Disponível" : "Indisponível no CORE C++";
+  target.innerHTML = `<span class="result-version">${escapeHtml(coreResult.runtimeContract ?? coreResult.schemaVersion ?? "Versão não informada")}</span>${scenario ? `<h3>${escapeHtml(scenario.title ?? scenario.name ?? "Cenário")}</h3><p>${escapeHtml(scenario.description ?? "")}</p>` : `<p>Cenário: ${escapeHtml(coreResult.environmentalScenario?.status ?? "não informado")}</p>`}${action ? `<div class="core-action"><strong>${escapeHtml(action.title ?? "Ação")}</strong><p>${escapeHtml(action.description ?? "")}</p></div>` : `<p>Ação: ${escapeHtml(actionState)}</p>`}${impacts.length ? `<div class="core-list"><strong>Impactos possíveis</strong>${impacts.map(item => `<p>${escapeHtml(item.title ?? "")}${item.description ? ` — ${escapeHtml(item.description)}` : ""}</p>`).join("")}</div>` : `<p>Impactos: ${escapeHtml(impactState)}</p>`}${diagnoses.length ? `<div class="core-list"><strong>Diagnósticos recebidos</strong>${diagnoses.map(item => `<p>${escapeHtml(item.title ?? "")}${item.description ? ` — ${escapeHtml(item.description)}` : ""}</p>`).join("")}</div>` : ""}${evidence.length ? `<div class="core-list"><strong>Evidências recebidas</strong>${evidence.map(item => `<p>${escapeHtml(item.title ?? "")}${item.description ? ` — ${escapeHtml(item.description)}${Array.isArray(item.referenceIds) && item.referenceIds.length ? ` · Referências: ${escapeHtml(item.referenceIds.join(", "))}` : ""}` : ""}</p>`).join("")}</div>` : ""}${hypotheses.length ? `<div class="core-list"><strong>Hipóteses a investigar</strong>${hypotheses.map(item => `<p>${escapeHtml(item.title ?? "")}${item.description ? ` — ${escapeHtml(item.description)}` : ""}${Array.isArray(item.referenceIds) && item.referenceIds.length ? ` · Referências: ${escapeHtml(item.referenceIds.join(", "))}` : ""}</p>`).join("")}</div>` : ""}<p>QAI Score: ${escapeHtml(scoreState)}</p>`;
 }
 
 async function loadDashboard() {
