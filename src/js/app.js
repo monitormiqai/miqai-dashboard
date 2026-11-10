@@ -113,6 +113,45 @@ function sensorValue(value, unit, coreResult, parameter) {
   return validation?.inputStatus === "NOT_CONFIGURED" ? "Não configurado" : "Indisponível nesta leitura";
 }
 
+const PRIMARY_METRICS = [
+  ["Temperatura", "temperature", "°C", "temperature"],
+  ["Umidade relativa", "humidity", "%", "humidity"],
+  ["Ponto de orvalho", "dew_point", "°C", "dewPoint"],
+  ["CO₂", "co2", "ppm", "co2"],
+  ["PM1", "pm1_0", "µg/m³", "pm1_0"],
+  ["PM2.5", "pm25", "µg/m³", "pm25"],
+  ["PM4", "pm4_0", "µg/m³", "pm4_0"],
+  ["PM10", "pm10", "µg/m³", "pm10"],
+];
+const COMPLEMENTARY_METRICS = [
+  ["CO", "co", "ppm", "co"],
+  ["VOC", "voc_index", "índice", "voc"],
+  ["NOx", "nox_index", "índice", "nox"],
+];
+
+function metricCards(metrics, reading, core, className) {
+  return metrics.map(([label, field, unit, parameter]) => `<article class="${className}"><small>${label}</small><strong>${sensorValue(reading?.[field], unit, core, parameter)}</strong></article>`).join("");
+}
+
+function complementaryReadings(reading, core, className = "") {
+  return `<details class="complementary-reading ${className}"><summary>Leituras complementares</summary><div class="reading-values complementary-values">${metricCards(COMPLEMENTARY_METRICS, reading, core, "reading-value")}</div></details>`;
+}
+
+function renderCurrentReadings(reading) {
+  const grid = document.querySelector("#current-reading-grid");
+  const time = document.querySelector("#current-reading-time");
+  if (!reading) {
+    grid.innerHTML = '<div class="empty-card"><span class="empty-glyph">◉</span><div><h3>Nenhuma leitura disponível</h3><p>Este ambiente ainda não possui medições.</p></div></div>';
+    time.textContent = "Aguardando leitura";
+    return;
+  }
+  const core = reading.core_result;
+  time.textContent = reading.measured_at && reading.time_status !== "UNSYNCED"
+    ? `Medida ${formatDate(reading.measured_at)} · recebida ${formatDate(reading.received_at)}`
+    : `Horário da medição indisponível · recebida ${formatDate(reading.received_at)}`;
+  grid.innerHTML = `${metricCards(PRIMARY_METRICS, reading, core, "current-reading-card")}<div class="current-reading-complementary">${complementaryReadings(reading, core)}</div>`;
+}
+
 function describeCoreMetric(value) {
   const descriptions = {
     CONTEXTUAL_OBSERVATION_NOT_REGULATORY_OR_CAUSAL: "observação contextual, sem indicar causa ou limite regulatório",
@@ -138,14 +177,10 @@ function renderMobileExperience(environment, devices, latest) {
       ? `Horário da medição indisponível · recebida ${formatDate(latest.received_at)}`
       : "Aguardando leitura";
 
-  const readingFields = [
-    ["Temperatura", latest?.temperature, "°C", "🌡", "temperature"], ["Umidade", latest?.humidity, "%", "◉", "humidity"],
-    ["CO₂", latest?.co2, "ppm", "☁", "co2"], ["Ponto de orvalho", latest?.dew_point, "°C", "♨", "dewPoint"],
-    ["PM2.5", latest?.pm25, "µg/m³", "✣", "pm25"], ["PM10", latest?.pm10, "µg/m³", "✣", "pm10"],
-  ];
   const currentTarget = document.querySelector("#mobile-current-content");
-  currentTarget.innerHTML = readingFields.length
-    ? `<div class="mobile-reading-grid">${readingFields.map(([label, value, unit, icon, parameter]) => `<article class="mobile-reading-card"><span aria-hidden="true">${icon}</span><small>${label}</small><strong>${sensorValue(value, unit, core, parameter)}</strong></article>`).join("")}</div>`
+  const mobileMetrics = PRIMARY_METRICS.filter(([, field]) => ["temperature", "humidity", "dew_point", "co2", "pm25", "pm10"].includes(field));
+  currentTarget.innerHTML = latest
+    ? `<div class="mobile-reading-grid">${metricCards(mobileMetrics, latest, core, "mobile-reading-card")}</div>${complementaryReadings(latest, core)}`
     : '<p class="mobile-empty">Esta leitura não contém medições disponíveis.</p>';
 
   const scenario = core?.scenario?.primary ??
@@ -246,7 +281,7 @@ function renderReadings(readings) {
     const measured = reading.measured_at && reading.time_status !== "UNSYNCED"
       ? `Medida: ${escapeHtml(formatDate(reading.measured_at))}`
       : "Horário da coleta indisponível";
-    return `<article class="reading-row"><div class="reading-row-head"><strong>${measured}</strong><small>Recebida: ${escapeHtml(formatDate(reading.received_at))}</small></div><div class="reading-values"><span>Temperatura <b>${escapeHtml(formatValue(reading.temperature, " °C"))}</b></span><span>Umidade <b>${escapeHtml(formatValue(reading.humidity, " %"))}</b></span><span>CO₂ <b>${escapeHtml(formatValue(reading.co2, " ppm"))}</b></span><span>PM2.5 <b>${escapeHtml(formatValue(reading.pm25, " µg/m³"))}</b></span><span>PM10 <b>${escapeHtml(formatValue(reading.pm10, " µg/m³"))}</b></span></div></article>`;
+    return `<article class="reading-row"><div class="reading-row-head"><strong>${measured}</strong><small>Recebida: ${escapeHtml(formatDate(reading.received_at))}</small></div><div class="reading-values">${PRIMARY_METRICS.map(([label, field, unit]) => `<span>${label} <b>${escapeHtml(formatValue(reading[field], ` ${unit}`))}</b></span>`).join("")}</div>${complementaryReadings(reading, reading.core_result)}</article>`;
   }).join("");
 }
 
@@ -305,6 +340,7 @@ async function loadDashboard() {
     renderEnvironments(environments, devices);
     renderDevices(devices, environments, readings);
     renderReadings(readings);
+    renderCurrentReadings(readings[0]);
     renderCoreResult(readings[0]?.core_result);
       const mobileEnvironment = environments[0];
       if (mobileEnvironment) renderMobileExperience(mobileEnvironment, devices, readings[0]);
