@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07192c">
   <meta name="description" content="MIQAI — monitoramento operacional da qualidade do ar interno.">
   <title>MIQAI | Visão geral</title>
-  <link rel="stylesheet" href="./src/css/dashboard.css">
+  <link rel="stylesheet" href="./src/css/dashboard.css?v=20261110-2">
 </head>
 <body>
   <div class="app-shell">
@@ -24,7 +24,7 @@
         <a class="nav-link" href="#ambientes"><span class="nav-icon">◇</span>Ambientes</a>
         <a class="nav-link" href="#dispositivos"><span class="nav-icon">◉</span>Dispositivos</a>
         <a class="nav-link" href="#historico"><span class="nav-icon">↗</span>Histórico</a>
-        <a class="nav-link" href="#alertas"><span class="nav-icon">♧</span>Alertas</a>
+        <a class="nav-link" href="#alertas"><span class="nav-icon">✧</span>Análise CORE</a>
       </nav>
       <div class="sidebar-bottom">
         <div class="help-card"><span class="help-mark">✦</span><strong>Ar mais puro.<br>Vida melhor.</strong><small>Monitoramento MIQAI</small></div>
@@ -91,7 +91,7 @@
         </section>
 
         <section class="page-heading">
-          <div><p class="eyebrow">MONITORAMENTO OPERACIONAL</p><h1>Visão geral</h1><p class="heading-copy">Acompanhe ambientes e dispositivos da sua instalação.</p></div>
+          <div><p class="eyebrow">AMBIENTE MONITORADO</p><h1 id="desktop-environment-title">Visão geral</h1><p class="heading-copy" id="desktop-environment-context">Acompanhe ambientes e dispositivos da sua instalação.</p></div>
           <div class="heading-tools"><span class="last-updated" id="last-updated"><i></i> Aguardando leituras</span></div>
         </section>
 
@@ -117,9 +117,19 @@
           <div class="current-reading-grid" id="current-reading-grid"><div class="empty-card"><span class="empty-glyph">◉</span><div><h3>Aguardando leitura</h3><p>As medições atuais e complementares serão exibidas quando estiverem disponíveis.</p></div></div></div>
         </section>
 
+        <section class="section-block core-experience-section" id="alertas">
+          <div class="section-heading"><div><p class="eyebrow">ANÁLISE DO CORE</p><h2>O que o MIQAI identificou</h2><p class="heading-copy">Cenário, impactos, ações e fundamentos recebidos nesta leitura.</p></div></div>
+          <div class="core-experience-grid">
+            <article class="core-experience-card core-now"><span class="core-experience-number">1</span><div><p class="eyebrow">AGORA</p><h3>Estado desta leitura</h3><div id="desktop-core-agora" class="core-section-content"><p>Aguardando resultado do CORE.</p></div></div></article>
+            <article class="core-experience-card"><span class="core-experience-number blue">2</span><div><p class="eyebrow">CENÁRIO</p><h3>O que está acontecendo</h3><div id="desktop-core-cenario" class="core-section-content"><p>Aguardando cenário do CORE.</p></div></div></article>
+            <article class="core-experience-card"><span class="core-experience-number purple">3</span><div><p class="eyebrow">IMPACTOS</p><h3>O que essas condições podem favorecer</h3><div id="desktop-core-impactos" class="core-section-content"><p>Aguardando impactos do CORE.</p></div></div></article>
+            <article class="core-experience-card"><span class="core-experience-number green">4</span><div><p class="eyebrow">AÇÃO</p><h3>O que fazer agora</h3><div id="desktop-core-acao" class="core-section-content"><p>Aguardando ações do CORE.</p></div></div></article>
+            <article class="core-experience-card"><span class="core-experience-number orange">5</span><div><p class="eyebrow">FUNDAMENTO</p><h3>Por que o MIQAI está dizendo isso</h3><div id="desktop-core-fundamento" class="core-section-content"><p>Aguardando evidências e referências do CORE.</p></div></div></article>
+          </div>
+        </section>
+
         <section class="lower-grid">
           <article class="panel history-panel" id="historico"><div class="section-heading compact"><div><p class="eyebrow">HISTÓRICO</p><h2>Leituras recentes</h2></div></div><div class="reading-list" id="reading-list"><div class="empty-state"><span class="empty-glyph">↗</span><strong>Aguardando leituras</strong><p>Valores e horários são apresentados conforme recebidos.</p></div></div></article>
-          <article class="panel alerts-panel" id="alertas"><div class="section-heading compact"><div><p class="eyebrow">RESULTADO DO CORE</p><h2>Diagnóstico recebido</h2></div></div><div id="core-result" class="empty-state"><span class="empty-glyph">✦</span><strong>Aguardando leitura</strong><p>Esta área apresenta o conteúdo fornecido pelo CORE.</p></div></article>
         </section>
         <footer class="page-footer"><span>MIQAI · Monitor de Qualidade do Ar Interno</span><span>O CORE produz a inteligência; o dashboard apresenta os resultados recebidos.</span></footer>
       </div>
@@ -130,7 +140,7 @@
     <a href="#ambientes"><span>◇</span><small>Ambientes</small></a>
     <a href="#dispositivos"><span>◉</span><small>Dispositivos</small></a>
     <a href="#historico"><span>↗</span><small>Histórico</small></a>
-    <a href="#alertas"><span>♧</span><small>Alertas</small></a>
+    <a href="#alertas"><span>✧</span><small>Análise</small></a>
   </nav>
   <script src="./src/js/config.js"></script>
   <script>
@@ -141,7 +151,7 @@
     sdk.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2?miqai=1";
     sdk.onload = () => {
       const app = document.createElement("script");
-      app.src = "./src/js/app.js?v=mobile-mvp-1";
+      app.src = "./src/js/app.js?v=20261110-2";
       app.onload = () => {
         if (!window.MIQAI_APP_READY && document.querySelector("#auth-message").textContent === "Preparando acesso seguro…") {
           document.querySelector("#auth-message").textContent = "Não foi possível preparar o acesso. Atualize a página.";

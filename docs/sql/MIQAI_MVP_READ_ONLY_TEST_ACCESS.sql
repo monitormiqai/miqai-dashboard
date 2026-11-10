@@ -20,8 +20,11 @@ grant select (device_id, environment_id, status, created_at, activated_at)
 
 grant select (
   reading_id, device_id, environment_id, measured_at, received_at,
-  time_status, firmware_version, temperature, dew_point, humidity,
-  co2, co, pm1_0, pm25, pm4_0, pm10, voc_index, nox_index, core_result
+  time_status, time_source, signal_strength, firmware_version,
+  temperature, dew_point, humidity, co2, co,
+  pm1_0, pm25, pm4_0, pm10,
+  nc0_5, nc1_0, nc2_5, nc4_0, nc10_0, typical_size,
+  voc_index, nox_index, core_result
 )
   on public.sensor_readings to authenticated;
 
